@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tablero de flujos de LITO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="app-css">:root{
+  --g:#45c678; --gd:#00ab44; --gx:#00733a; --cy:#0097a7; --or:#ffab40; --rd:#e0002a;
+  --bg:#f4f9f6; --surface:#ffffff; --ink:#1d2a23; --muted:#5b6b62; --line:#b8cfc2; --hair:#dde9e2; --soft:#eef6f1;
+  --k-bot:#00ab44; --k-ask:#2f9e5f; --k-file:#c97a00; --k-api:#0097a7; --k-ddjj:#1d2a23;
+  --k-bot-bg:#e3f6ea; --k-ask-bg:#f2faf5; --k-file-bg:#fff3e2; --k-api-bg:#e0f3f5; --k-ddjj-bg:#eef1ef;
+  --k-bot-dash:#9fdcb7; --k-ask-dash:#a9d6bb; --k-file-dash:#f0c98e; --k-api-dash:#94d3da; --k-ddjj-dash:#b9c2bd;
+  --dec-bg:#e0f3f5; --dec-ink:#00545d;
+  --warn-ink:#a3001e; --warn-bg:#ffe6e8;
+  --btn:#00873a; --btn-ink:#ffffff;
+  --shadow:0 1px 2px rgba(20,60,40,.07),0 8px 24px rgba(20,60,40,.06);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1612; --surface:#15201a; --ink:#e6f0ea; --muted:#9aaea2; --line:#3a5145; --hair:#26372d; --soft:#1b2a22;
+    --k-bot:#45c678; --k-ask:#7fdca3; --k-file:#ffb85c; --k-api:#3cc3d3; --k-ddjj:#e6f0ea;
+    --k-bot-bg:#173826; --k-ask-bg:#15261d; --k-file-bg:#3a2c14; --k-api-bg:#123238; --k-ddjj-bg:#1f2b25;
+    --k-bot-dash:#2f6b48; --k-ask-dash:#2f5a41; --k-file-dash:#6b5226; --k-api-dash:#28616a; --k-ddjj-dash:#45524b;
+    --dec-bg:#123238; --dec-ink:#bdeef3;
+    --warn-ink:#ffc9cf; --warn-bg:#3a1519;
+    --btn:#45c678; --btn-ink:#0b1d13;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1612; --surface:#15201a; --ink:#e6f0ea; --muted:#9aaea2; --line:#3a5145; --hair:#26372d; --soft:#1b2a22;
+  --k-bot:#45c678; --k-ask:#7fdca3; --k-file:#ffb85c; --k-api:#3cc3d3; --k-ddjj:#e6f0ea;
+  --k-bot-bg:#173826; --k-ask-bg:#15261d; --k-file-bg:#3a2c14; --k-api-bg:#123238; --k-ddjj-bg:#1f2b25;
+  --k-bot-dash:#2f6b48; --k-ask-dash:#2f5a41; --k-file-dash:#6b5226; --k-api-dash:#28616a; --k-ddjj-dash:#45524b;
+  --dec-bg:#123238; --dec-ink:#bdeef3;
+  --warn-ink:#ffc9cf; --warn-bg:#3a1519;
+  --btn:#45c678; --btn-ink:#0b1d13;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 80px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--bg)}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--cy);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:26px 18px 64px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;color:var(--gd);margin:0 0 14px}
+.brand i{width:12px;height:12px;border-radius:50%;background:var(--or);border:3px solid var(--gd);display:inline-block}
+h1{font-size:clamp(1.5rem,3.6vw,2.2rem);line-height:1.15;margin:0 0 6px;font-weight:700}
+.lead{margin:0 0 16px;color:var(--muted);max-width:70ch}
+
+/* Barra de herramientas */
+.toolbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);margin:0 -18px 18px;padding:10px 18px;border-bottom:1px solid var(--hair);display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.toolbar .status{flex:1 1 220px;font-size:.86rem;color:var(--muted);display:flex;align-items:center;gap:8px;min-width:0}
+.toolbar .status .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.toolbar .status.dirty .dot{background:var(--or)}
+.toolbar .status.dirty{color:var(--ink);font-weight:500}
+.toolbar .msg{flex-basis:100%;font-size:.84rem;color:var(--warn-ink);margin:0}
+.toolbar .msg.ok{color:var(--k-bot)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 16px;font-size:.88rem;font-weight:500;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--gd)}
+.btn.primary{background:var(--btn);border-color:var(--btn);color:var(--btn-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.on{background:var(--soft);border-color:var(--gd);color:var(--k-bot);font-weight:600}
+.btn.danger{color:var(--warn-ink)}
+.btn.danger:hover{border-color:var(--rd)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;filter:none}
+.btn.sm{padding:4px 12px;font-size:.8rem}
+.recover{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--k-file-bg);border-radius:10px;padding:8px 12px;font-size:.86rem}
+.recover span{flex:1 1 240px}
+
+nav.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+nav.tabs a,nav.tabs button{display:flex;align-items:center;gap:8px;text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px 6px 6px;font-size:.86rem;font-weight:500;cursor:pointer}
+nav.tabs a b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--soft);font-size:.78rem}
+nav.tabs a[aria-current="page"]{background:var(--gd);border-color:var(--gd);color:#fff}
+nav.tabs a[aria-current="page"] b{background:rgba(255,255,255,.22);color:#fff}
+nav.tabs button{padding:6px 14px;border-style:dashed;color:var(--k-bot)}
+
+/* Tablero */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{display:flex;flex-direction:column;gap:8px;text-decoration:none;background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px 18px;border-top:5px solid var(--tone);transition:transform .15s}
+.card:hover{transform:translateY(-2px)}
+.card h3{margin:0;font-size:1.02rem;line-height:1.3}
+.card .sub{margin:0;font-size:.82rem;color:var(--muted)}
+.card .ask{margin:4px 0 0;font-size:.86rem;font-style:italic;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:8px}
+.stats span{font-size:.74rem;font-weight:600;border-radius:999px;padding:2px 10px;background:var(--sbg);color:var(--sc)}
+.t-ok{--tone:var(--gd)} .t-wip{--tone:var(--cy)} .t-pend{--tone:var(--or)} .t-err{--tone:var(--rd)}
+
+/* Lámina */
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
+@media (min-width:1000px){.layout.with-panel{grid-template-columns:minmax(0,1fr) 340px}}
+.lamina{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:clamp(18px,3vw,36px);min-width:0}
+.lamina.exporting{width:max-content;min-width:100%;box-shadow:none}
+.lamina.exporting .scroll{overflow:visible}
+.lamina.exporting .lam-actions{display:none}
+.lam-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between;margin:0 0 18px;border-bottom:3px solid var(--g);padding-bottom:16px}
+.lam-head h2{margin:0;font-size:clamp(1.15rem,2.6vw,1.5rem);line-height:1.25}
+.lam-head .sub{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.lam-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.lam-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.badge{font-size:.8rem;font-weight:600;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.badge.ok{background:var(--k-bot-bg);color:var(--k-bot)}
+.badge.wip{background:var(--k-api-bg);color:var(--k-api)}
+.badge.pend{background:var(--k-file-bg);color:var(--k-file)}
+.badge.err{background:var(--warn-bg);color:var(--warn-ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 16px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.hint{margin:0 0 14px;font-size:.84rem;background:var(--soft);border-radius:10px;padding:8px 12px;color:var(--muted)}
+.scroll{overflow-x:auto;padding:4px 0 8px}
+.flow{display:flex;flex-direction:column;align-items:center;min-width:max-content;margin:0 auto}
+
+.node{width:250px;border-radius:10px;padding:9px 12px 10px;background:var(--kbg);border:1.5px solid var(--kc);position:relative;text-align:left}
+.node .tag{display:block;font-size:.68rem;font-weight:600;color:var(--kc);margin:0 0 2px}
+.node p{margin:0;font-size:.86rem;line-height:1.38}
+.node .note{margin-top:6px;padding-top:6px;border-top:1px dashed var(--kd);font-size:.76rem;color:var(--muted)}
+.node .note.alert{color:var(--warn-ink)}
+.k-bot{--kc:var(--k-bot);--kbg:var(--k-bot-bg);--kd:var(--k-bot-dash)}
+.k-ask{--kc:var(--k-ask);--kbg:var(--k-ask-bg);--kd:var(--k-ask-dash)}
+.k-file{--kc:var(--k-file);--kbg:var(--k-file-bg);--kd:var(--k-file-dash)}
+.k-api{--kc:var(--k-api);--kbg:var(--k-api-bg);--kd:var(--k-api-dash)}
+.k-ddjj{--kc:var(--k-ddjj);--kbg:var(--k-ddjj-bg);--kd:var(--k-ddjj-dash)}
+.pill{border-radius:999px;padding:10px 22px;font-weight:600;font-size:.88rem;text-align:center;max-width:280px;line-height:1.35}
+.pill.start{background:var(--gx);color:#fff}
+.pill.end{background:var(--gd);color:#fff}
+.pill.stop{background:var(--warn-bg);color:var(--warn-ink);font-size:.8rem;padding:7px 16px}
+.pill small{display:block;font-weight:400;font-size:.76rem;opacity:.92;margin-top:2px}
+.dec{width:250px;padding:14px 28px;color:var(--dec-ink);font-weight:600;font-size:.86rem;text-align:center;line-height:1.35;position:relative}
+.dec svg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.dec span{position:relative;z-index:1}
+.c{width:2px;height:24px;background:var(--line);position:relative;flex:none}
+.c.arrow::after{content:"";position:absolute;left:-5px;bottom:-1px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--line)}
+.c.short{height:14px}
+.branches{display:flex;align-items:stretch}
+.col{display:flex;flex-direction:column;align-items:center;flex:1 1 0;min-width:270px;padding:0 10px;position:relative}
+.col::before,.col::after{content:"";position:absolute;height:2px;background:var(--line);left:0;right:0}
+.col::before{top:0}
+.col::after{bottom:0}
+.col:first-child::before,.col:first-child::after{left:50%}
+.col:last-child::before,.col:last-child::after{right:50%}
+.col.stop::after{display:none}
+.blabel{font-size:.74rem;font-weight:600;background:var(--surface);color:var(--dec-ink);border:1.5px solid var(--k-api);border-radius:999px;padding:1px 10px;margin:0;position:relative;z-index:1}
+.grow{flex:1 1 auto;width:2px;min-height:20px;background:var(--line)}
+
+/* Modo edición */
+.editing [data-id]{cursor:pointer}
+.editing [data-id]:hover{outline:2px dashed var(--or);outline-offset:3px}
+.editing [data-id].sel{outline:3px solid var(--or);outline-offset:3px}
+.add{border:1.5px dashed var(--line);background:var(--surface);color:var(--k-bot);border-radius:999px;padding:3px 12px;font-size:.78rem;font-weight:600;cursor:pointer;position:relative;z-index:1}
+.add:hover{border-color:var(--gd)}
+
+.foot{margin:22px 0 0;display:grid;gap:8px}
+.foot p{margin:0;font-size:.82rem;color:var(--muted);padding-left:14px;border-left:3px solid var(--or)}
+.foot p.alert{border-left-color:var(--rd);color:var(--warn-ink)}
+
+/* Panel de edición */
+.panel{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:16px 16px 18px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);max-height:calc(100vh - 96px);overflow:auto}
+.panel h3{margin:0 0 4px;font-size:1rem}
+.panel .phint{margin:0 0 12px;font-size:.8rem;color:var(--muted)}
+.field{display:grid;gap:4px;margin:0 0 12px}
+.field label,.field .lbl{font-size:.78rem;font-weight:600;color:var(--muted)}
+.field input[type=text],.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 10px;font-size:.88rem}
+.field textarea{min-height:64px;resize:vertical;line-height:1.4}
+.check{display:flex;gap:8px;align-items:center;font-size:.84rem;margin:-4px 0 12px}
+.rama{border:1px solid var(--hair);border-radius:10px;padding:8px 10px;margin:0 0 8px;display:grid;gap:6px}
+.rama .row{display:flex;gap:6px;align-items:center}
+.rama .row input[type=text]{flex:1}
+.rama small{font-size:.74rem;color:var(--muted)}
+.pnote{border:1px solid var(--hair);border-radius:10px;padding:8px 10px;margin:0 0 8px;display:grid;gap:6px}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding-top:12px;border-top:1px solid var(--hair)}
+@media (max-width:999px){
+  .panel{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:35;max-height:58vh;border-radius:16px 16px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+  .layout.with-panel{padding-bottom:58vh}
+}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script id="state" type="application/json">{"version":1,"flujos":[{"id":"n1","slug":"ong","nombre":"Asistencia técnica para proyectos de ONG","sub":"Formulario IMI · ID 18 · Nivel 1","badge":{"tone":"pend","text":"Sin definir en MVP1"},"nodos":[{"id":"n2","k":"start","t":"“Quiero ayuda con un proyecto para mi ONG”","n":"Ciudadano ya validado con USI"},{"id":"n3","k":"api","t":"Consulta la configuración del trámite","n":"Nivel, cupo y si admite múltiples. Si el nivel no alcanza: envía la URL de USI y retoma desde acá. Sin cupo: lo informa."},{"id":"n4","k":"bot","t":"Explica de qué trata y cómo sigue","n":"El equipo técnico se comunica por “Mis trámites”."},{"id":"n5","k":"ask","t":"Nombre o razón social de la entidad"},{"id":"n6","k":"ask","t":"CUIT de la entidad","n":"Valida 11 dígitos."},{"id":"n7","k":"ask","t":"N.º de personería jurídica"},{"id":"n8","k":"ask","t":"Rol del gestor en la asociación y actividad o rubro"},{"id":"n9","k":"ask","t":"Localidad","n":"Matchea la respuesta contra el listado."},{"id":"na","k":"ask","t":"Motivo de la solicitud","n":"Muestra las 4 opciones."},{"id":"nb","k":"dec","t":"¿Eligió “Otro”?","ramas":[{"id":"nc","label":"Sí","fin":false,"nodos":[{"id":"nd","k":"ask","t":"Pide que explique bien el motivo"}]},{"id":"ne","label":"No","fin":false,"nodos":[{"id":"nf","k":"ask","t":"Pide el detalle del motivo"}]}]},{"id":"ng","k":"file","t":"Estatuto social","n":"jpg, png o pdf."},{"id":"nh","k":"file","t":"Proyecto o borrador","n":"pdf, doc o docx."},{"id":"ni","k":"ddjj","t":"Pide aceptar la DDJJ","n":"Obligatoria para concluir el trámite."},{"id":"nj","k":"api","t":"Envía la solicitud y recibe el n.º de trámite"},{"id":"nk","k":"end","t":"Cierre del trámite","n":"N.º de trámite, email y encuesta. El equipo se comunica por “Mis trámites”."}],"pie":[{"t":"En cualquier paso, el ciudadano puede salir con la válvula de escape. Si abandona, el caso queda pendiente 7 días.","a":false},{"t":"Si la API falla, LITO informa que el trámite no pudo completarse por fuerza mayor.","a":true}],"corto":"ONG"},{"id":"nl","slug":"menores","nombre":"Autorización de viaje de menores dentro del país","sub":"Formulario IMI · ID 19 · Nivel 3","badge":{"tone":"pend","text":"Sin definir en MVP1"},"nodos":[{"id":"nm","k":"start","t":"“Necesito autorizar un viaje de mi hijo”","n":"Ciudadano ya validado con USI"},{"id":"nn","k":"api","t":"Consulta la configuración del trámite","n":"Nivel, cupo y si admite múltiples. Si el nivel no alcanza: envía la URL de USI y retoma desde acá. Sin cupo: lo informa."},{"id":"no","k":"bot","t":"Explica de qué trata y las condiciones","n":"Solo vía terrestre y dentro del país, DNI vigente y sellado DGR código 0466."},{"id":"np","k":"dec","t":"¿Es el progenitor o tutor que autoriza?","ramas":[{"id":"nq","label":"Sí","fin":false,"nodos":[]},{"id":"nr","label":"No","fin":true,"nodos":[{"id":"ns","k":"bot","t":"Informa quién debe hacerlo","n":"A definir.","a":true}]}]},{"id":"nt","k":"ask","t":"Nombre y apellido del menor"},{"id":"nu","k":"ask","t":"Nombre y apellido del adulto acompañante"},{"id":"nv","k":"ask","t":"Parentesco o vínculo con el menor"},{"id":"nw","k":"dec","t":"¿Quiere dejar un teléfono?","ramas":[{"id":"nx","label":"Sí","fin":false,"nodos":[{"id":"ny","k":"ask","t":"Teléfono de contacto"}]},{"id":"nz","label":"No","fin":false,"nodos":[]}]},{"id":"n10","k":"ask","t":"Provincia de origen y de destino"},{"id":"n11","k":"file","t":"Acta de nacimiento actualizada","n":"Hoy solo imagen."},{"id":"n12","k":"file","t":"DNI del menor, frente y dorso"},{"id":"n13","k":"file","t":"DNI del progenitor que autoriza"},{"id":"n14","k":"file","t":"DNI del adulto acompañante"},{"id":"n15","k":"ddjj","t":"Pide aceptar la DDJJ","n":"Obligatoria para concluir el trámite."},{"id":"n16","k":"api","t":"Envía la solicitud y recibe el n.º de trámite"},{"id":"n17","k":"end","t":"Cierre del trámite","n":"N.º de trámite. La autorización llega por “Mis trámites”. Recuerda pagar el sellado."}],"pie":[{"t":"En cualquier paso, el ciudadano puede salir con la válvula de escape. Si abandona, el caso queda pendiente 7 días.","a":false},{"t":"Si la API falla, LITO informa que el trámite no pudo completarse por fuerza mayor.","a":true},{"t":"Pendiente: provincias duplicadas en la API y caso del menor de más de 13 años que viaja solo.","a":true}],"corto":"Viaje de menores"},{"id":"n18","slug":"residuos","nombre":"Inscripción como generador de residuos peligrosos","sub":"Formulario IMI · ID 11 · Nivel 3","badge":{"tone":"wip","text":"Incluido (actualizar MVP1)"},"nodos":[{"id":"n19","k":"start","t":"“Quiero inscribirme como generador de residuos peligrosos”","n":"Ciudadano ya validado con USI"},{"id":"n1a","k":"api","t":"Consulta la configuración del trámite","n":"Nivel, cupo y si admite múltiples. Si el nivel no alcanza: envía la URL de USI y retoma desde acá. Sin cupo: lo informa."},{"id":"n1b","k":"bot","t":"Explica de qué trata y qué va a pedir","n":"No aplica a transportistas ni operadores. Es arancelado y pide 4 archivos."},{"id":"n1c","k":"dec","t":"¿El titular es persona física o jurídica?","ramas":[{"id":"n1d","label":"Jurídica","fin":false,"nodos":[{"id":"n1e","k":"ask","t":"Razón social"}]},{"id":"n1f","label":"Física","fin":false,"nodos":[]}]},{"id":"n1g","k":"ask","t":"CUIT, domicilio y localidad del generador"},{"id":"n1h","k":"ask","t":"Celular y email para comunicaciones","n":"A definir si usa los validados del gestor."},{"id":"n1i","k":"dec","t":"¿Tiene representante técnico?","ramas":[{"id":"n1j","label":"Sí","fin":false,"nodos":[{"id":"n1k","k":"ask","t":"Datos del representante","n":"Nombre, CUIT, matrícula, domicilio, celular y email."}]},{"id":"n1l","label":"No","fin":false,"nodos":[]}]},{"id":"n1m","k":"file","t":"DDJJ de generador (Anexo II) firmada"},{"id":"n1n","k":"file","t":"Comprobantes de pago","n":"Arancel de inicio, arancel de registro y timbrado fiscal."},{"id":"n1o","k":"ddjj","t":"Pide aceptar la DDJJ","n":"Obligatoria para concluir el trámite."},{"id":"n1p","k":"api","t":"Envía la solicitud y recibe el n.º de trámite"},{"id":"n1q","k":"end","t":"Cierre del trámite","n":"N.º de trámite. El certificado y la resolución llegan por “Mis trámites”."}],"pie":[{"t":"En cualquier paso, el ciudadano puede salir con la válvula de escape. Si abandona, el caso queda pendiente 7 días.","a":false},{"t":"Si la API falla, LITO informa que el trámite no pudo completarse por fuerza mayor.","a":true},{"t":"Pendiente: confirmar el límite de archivos por solicitud en el canal.","a":true}],"corto":"Residuos peligrosos"},{"id":"n1r","slug":"emergencia","nombre":"Ayuda por emergencia o necesidad urgente","sub":"Formulario IMI · ID 6 · Nivel 1","badge":{"tone":"wip","text":"Incluido (actualizar MVP1)"},"nodos":[{"id":"n1s","k":"start","t":"“Se me inundó la casa, necesito ayuda”","n":"Ciudadano ya validado con USI"},{"id":"n1t","k":"api","t":"Consulta la configuración del trámite","n":"Nivel, cupo y si admite múltiples. Si el nivel no alcanza: envía la URL de USI y retoma desde acá. Sin cupo: lo informa."},{"id":"n1u","k":"bot","t":"Explica las condiciones","n":"No garantiza la aprobación, aplica si ningún otro organismo puede asistir y los datos no se modifican después."},{"id":"n1v","k":"bot","t":"Si hay riesgo inmediato: 911 o Defensa Civil","n":"Lo indica antes de seguir.","a":true},{"id":"n1w","k":"ask","t":"¿Es por inundación, tormenta, incendio u otra emergencia?"},{"id":"n1x","k":"ask","t":"Tipo de ayuda","n":"Muestra las 6 opciones."},{"id":"n1y","k":"dec","t":"¿Eligió “Otra ayuda”?","ramas":[{"id":"n1z","label":"Sí","fin":false,"nodos":[{"id":"n20","k":"ask","t":"Pide que detalle la ayuda"}]},{"id":"n21","label":"No","fin":false,"nodos":[{"id":"n22","k":"ask","t":"Motivo de la solicitud","n":"Opcional."}]}]},{"id":"n23","k":"ask","t":"Dirección de la casa afectada y localidad"},{"id":"n24","k":"ask","t":"Personas en la casa: total y menores de 18","n":"Valida que los menores no superen el total."},{"id":"n25","k":"dec","t":"¿Quiere adjuntar fotos o acta?","ramas":[{"id":"n26","label":"Sí","fin":false,"nodos":[{"id":"n27","k":"file","t":"Fotos y acta de Defensa Civil o del municipio"}]},{"id":"n28","label":"No","fin":false,"nodos":[]}]},{"id":"n29","k":"ddjj","t":"Pide aceptar la DDJJ","n":"Obligatoria para concluir el trámite."},{"id":"n2a","k":"api","t":"Envía la solicitud y recibe el n.º de trámite"},{"id":"n2b","k":"end","t":"Cierre del trámite","n":"N.º de trámite. El estado se consulta en “Mis trámites”; si se aprueba, coordinan la entrega."}],"pie":[{"t":"En cualquier paso, el ciudadano puede salir con la válvula de escape. Si abandona, el caso queda pendiente 7 días.","a":false},{"t":"Si la API falla, LITO informa que el trámite no pudo completarse por fuerza mayor.","a":true}],"corto":"Emergencia"},{"id":"n2c","slug":"dpec","nombre":"DPEC: consulta de deuda y facturas","sub":"Integración 7 · Bridge SOAP · sin caché","badge":{"tone":"err","text":"API reportada con error"},"nodos":[{"id":"n2d","k":"start","t":"“¿Cuánto debo de luz?”","n":"Ciudadano ya validado con USI"},{"id":"n2e","k":"api","t":"Busca al cliente y sus suministros","n":"GET /dpec/cliente?dni="},{"id":"n2f","k":"dec","t":"¿Tiene más de un suministro?","ramas":[{"id":"n2g","label":"Sí","fin":false,"nodos":[{"id":"n2h","k":"bot","t":"Lista los suministros por domicilio y estado"},{"id":"n2i","k":"ask","t":"¿Cuál querés consultar?"}]},{"id":"n2j","label":"No","fin":false,"nodos":[{"id":"n2k","k":"bot","t":"Usa el único suministro"}]}]},{"id":"n2l","k":"api","t":"Consulta la deuda","n":"GET /dpec/deuda/{referencia}"},{"id":"n2m","k":"dec","t":"¿Tiene deuda?","ramas":[{"id":"n2n","label":"Sí","fin":false,"nodos":[{"id":"n2o","k":"bot","t":"Muestra deuda total y facturas adeudadas","n":"Con código de barras o link de pago."}]},{"id":"n2p","label":"No","fin":false,"nodos":[{"id":"n2q","k":"bot","t":"Informa que está al día"}]}]},{"id":"n2r","k":"dec","t":"¿Quiere ver el historial?","ramas":[{"id":"n2s","label":"Sí","fin":false,"nodos":[{"id":"n2t","k":"api","t":"Trae el historial de facturas","n":"GET /dpec/facturas/{referencia}"},{"id":"n2u","k":"bot","t":"Muestra las facturas emitidas"}]},{"id":"n2v","label":"No","fin":false,"nodos":[]}]},{"id":"n2w","k":"end","t":"Cierre de la consulta","n":"Ofrece Mi DPEC para el detalle y pide la encuesta."}],"pie":[{"t":"LITO usa el CUIL validado con USI: el ciudadano no tiene que escribir sus datos.","a":false},{"t":"Si el organismo no responde (503), LITO avisa que el servicio no está disponible y sugiere intentar más tarde.","a":true}],"corto":"DPEC"},{"id":"n2x","slug":"ips","nombre":"IPS: estado de expedientes","sub":"Integración 8 · REST","badge":{"tone":"pend","text":"Falta ejemplo de respuesta"},"nodos":[{"id":"n2y","k":"start","t":"“¿Cómo va mi trámite de jubilación?”","n":"Ciudadano ya validado con USI"},{"id":"n2z","k":"dec","t":"¿Qué consulta?","ramas":[{"id":"n30","label":"Carnet","fin":false,"nodos":[{"id":"n31","k":"bot","t":"Deriva a Credenciales","n":"Tipo de beneficio, link al carnet y QR de verificación."}]},{"id":"n32","label":"Trámite","fin":false,"nodos":[{"id":"n33","k":"api","t":"Consulta los expedientes","n":"GET /ips/solicitudes"},{"id":"n34","k":"dec","t":"¿Tiene expedientes?","ramas":[{"id":"n35","label":"Sí","fin":false,"nodos":[{"id":"n36","k":"bot","t":"Lista expedientes con estado y fecha"}]},{"id":"n37","label":"No","fin":false,"nodos":[{"id":"n38","k":"bot","t":"Lo explica y deriva a la página de IPS"}]}]}]}]},{"id":"n39","k":"end","t":"Cierre de la consulta","n":"Pide la encuesta."}],"pie":[{"t":"LITO usa el CUIL validado con USI: el ciudadano no tiene que escribir sus datos.","a":false},{"t":"Si el organismo no responde (503), LITO avisa que el servicio no está disponible y sugiere intentar más tarde.","a":true}],"corto":"IPS"},{"id":"n3a","slug":"dgr","nombre":"DGR: situación fiscal","sub":"Integración 5 · OAuth2 · caché 15 min","badge":{"tone":"ok","text":"API lista"},"nodos":[{"id":"n3b","k":"start","t":"“¿Debo algo en Rentas?”","n":"Ciudadano ya validado con USI"},{"id":"n3c","k":"api","t":"Consulta la situación fiscal","n":"GET /dgr-micorrientes/consulta/{cuit}"},{"id":"n3d","k":"dec","t":"¿Preguntó por un impuesto puntual?","ramas":[{"id":"n3e","label":"Sí","fin":false,"nodos":[{"id":"n3f","k":"bot","t":"Va directo a ese impuesto","n":"Por ejemplo: dominio del vehículo y saldo."}]},{"id":"n3g","label":"No","fin":false,"nodos":[{"id":"n3h","k":"bot","t":"Muestra la situación general","n":"Al día o con deuda, y el total consolidado."}]}]},{"id":"n3i","k":"bot","t":"Aclara la fecha de actualización de los datos"},{"id":"n3j","k":"bot","t":"Ofrece ir a Mi DGR para pagar o ver el detalle"},{"id":"n3k","k":"end","t":"Cierre de la consulta","n":"Pide la encuesta."}],"pie":[{"t":"LITO usa el CUIL validado con USI: el ciudadano no tiene que escribir sus datos.","a":false},{"t":"Si el organismo no responde (503), LITO avisa que el servicio no está disponible y sugiere intentar más tarde.","a":true}],"corto":"DGR"},{"id":"n3l","slug":"firma","nombre":"Solicitud de turno para firma digital","sub":"Formulario IMI · ID 20 · Nivel 3","badge":{"tone":"ok","text":"Incluido en MVP1"},"nodos":[{"id":"n3m","k":"start","t":"“Quiero sacar turno para la firma digital”","n":"Ciudadano ya validado con USI"},{"id":"n3n","k":"api","t":"Consulta la configuración del trámite","n":"Nivel, cupo y si admite múltiples. Si el nivel no alcanza: envía la URL de USI y retoma desde acá. Sin cupo: lo informa."},{"id":"n3o","k":"bot","t":"Explica de qué trata","n":"Diferencia entre firma con token y sin token, y cómo se informa el turno."},{"id":"n3p","k":"ask","t":"Localidad","n":"Matchea la respuesta contra el listado."},{"id":"n3q","k":"dec","t":"¿Qué tipo de firma necesita?","ramas":[{"id":"n3r","label":"Con token","fin":false,"nodos":[{"id":"n3s","k":"bot","t":"Pide completar antes el formulario de la ONTI","n":"Comparte el link."},{"id":"n3t","k":"file","t":"Foto del token, frente"},{"id":"n3u","k":"file","t":"Foto del token, dorso"}]},{"id":"n3v","label":"Sin token","fin":false,"nodos":[{"id":"n3w","k":"bot","t":"Avisa qué necesita el día del turno","n":"Email y celular con Google Authenticator."}]}]},{"id":"n3x","k":"ddjj","t":"Pide aceptar la DDJJ","n":"Obligatoria para concluir el trámite."},{"id":"n3y","k":"api","t":"Envía la solicitud y recibe el n.º de trámite"},{"id":"n3z","k":"end","t":"Cierre del trámite","n":"N.º de trámite y cómo va a recibir el turno."}],"pie":[{"t":"En cualquier paso, el ciudadano puede salir con la válvula de escape. Si abandona, el caso queda pendiente 7 días.","a":false},{"t":"Si la API falla, LITO informa que el trámite no pudo completarse por fuerza mayor.","a":true}],"corto":"Firma digital"}],"actualizado":""}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script id="app-js">(function(){
+  'use strict';
+  /* ===== Fuente canónica de la página: se usa para publicar versiones nuevas ===== */
+  var HEAD = '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<title>Tablero de flujos de LITO</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">';
+  var H2C = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  var SC = '</scr' + 'ipt>';
+  function buildHTML(st){
+    var css = document.getElementById('app-css').textContent;
+    var js = document.getElementById('app-js').textContent;
+    var data = JSON.stringify(st).replace(/</g, '\\u003c');
+    return '<!DOCTYPE html>\n<html lang="es">\n<head>\n' + HEAD + '\n<style id="app-css">' + css + '</style>\n</head>\n<body>\n<div id="app"></div>\n' +
+      '<script id="state" type="application/json">' + data + SC + '\n' +
+      '<script src="' + H2C + '">' + SC + '\n' +
+      '<script id="app-js">' + js + SC + '\n</body>\n</html>\n';
+  }
+
+  /* ===== Estado ===== */
+  var EMBED_TXT = document.getElementById('state').textContent;
+  var EMBED = JSON.parse(EMBED_TXT);
+  var state = clone(EMBED);
+  var hist = [];
+  var edit = false, sel = null, pending = false;
+  var ns = {artifact:null, downloads:null, user:null};
+  var canSave = false, readOnly = false, saving = false, ready = false;
+  var runtime = !!(window.claude && typeof window.claude.use === 'function');
+  var msg = '', msgOk = false, recover = null;
+  var KEY_DRAFT = 'lito-flujos-borrador', KEY_VIEW = 'lito-flujos-vista';
+
+  var KINDS = [['start','Inicio'],['bot','LITO informa'],['ask','LITO pregunta'],['file','Archivo'],['api','API'],['ddjj','Declaración jurada'],['dec','Decisión'],['end','Final']];
+  var TAG = {bot:'LITO informa', ask:'LITO pregunta', file:'LITO pide un archivo', api:'API', ddjj:'Declaración jurada'};
+  var TONES = [['ok','Verde'],['wip','Cian'],['pend','Naranja'],['err','Rojo']];
+  var LEYENDA = [['LITO informa','--k-bot'],['LITO pregunta','--k-ask'],['Archivo','--k-file'],['API','--k-api'],['Decisión','--dec-ink'],['DDJJ','--k-ddjj']];
+  var RESERVED = ['tablero','settings','sidebar','customize','upgrade','downloads'];
+
+  function clone(x){ return JSON.parse(JSON.stringify(x)); }
+  function uid(){ return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function reid(n){ n.id = uid(); if (n.ramas) n.ramas.forEach(function(r){ r.id = uid(); r.nodos.forEach(reid); }); return n; }
+  function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function btn(txt, cls, fn, title){ var b = el('button', 'btn' + (cls ? ' ' + cls : ''), txt); b.type = 'button'; if (fn) b.addEventListener('click', fn); if (title) b.title = title; return b; }
+
+  function current(){ var h = decodeURIComponent((location.hash || '').slice(1)); return h || 'tablero'; }
+  function flujoActual(){ var s = current(); return state.flujos.filter(function(f){ return f.slug === s; })[0] || null; }
+
+  function walk(list, fn, parent){ list.forEach(function(n, i){ fn(n, list, i, parent); if (n.ramas) n.ramas.forEach(function(r){ walk(r.nodos, fn, r); }); }); }
+  function find(f, id){ var res = null; walk(f.nodos, function(n, list, i){ if (n.id === id) res = {node:n, list:list, idx:i}; }); return res; }
+  function contar(f){
+    var c = {ask:0, file:0, api:0, dec:0};
+    walk(f.nodos, function(n){ if (n.k in c) c[n.k]++; });
+    return c;
+  }
+
+  function isDirty(){ return JSON.stringify(state) !== EMBED_TXT && JSON.stringify(state) !== JSON.stringify(EMBED); }
+  function pushHist(){ hist.push(JSON.stringify(state)); if (hist.length > 60) hist.shift(); }
+  function setMsg(t, ok){ msg = t; msgOk = !!ok; renderToolbar(); }
+
+  function slugify(s){
+    var b = (s || 'flujo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,28) || 'flujo';
+    if (/^comment-/.test(b) || RESERVED.indexOf(b) >= 0) b = 'flujo-' + b;
+    var out = b, i = 2;
+    while (state.flujos.some(function(f){ return f.slug === out; })) out = b + '-' + (i++);
+    return out;
+  }
+
+  function fecha(iso){
+    if (!iso) return '';
+    var d = new Date(iso); if (isNaN(d)) return '';
+    function p(n){ return (n < 10 ? '0' : '') + n; }
+    return p(d.getDate()) + '/' + p(d.getMonth()+1) + '/' + d.getFullYear() + ' a las ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  /* ===== Estructura base ===== */
+  var app = document.getElementById('app');
+  var wrap = el('div', 'wrap');
+  var top = el('header');
+  var brand = el('div', 'brand'); brand.appendChild(el('i')); brand.appendChild(document.createTextNode('prosumia'));
+  top.appendChild(brand);
+  top.appendChild(el('h1', null, 'Tablero de flujos de LITO'));
+  top.appendChild(el('p', 'lead', 'El camino conversacional de cada trámite: qué informa LITO, qué pregunta, qué archivos pide y cuándo llama a la API. Activá la edición para cambiar pasos, ramas y notas, y guardá para que todo el equipo vea la versión nueva.'));
+  var toolbar = el('div', 'toolbar');
+  var nav = el('nav', 'tabs'); nav.setAttribute('aria-label', 'Flujos');
+  var main = el('main');
+  wrap.appendChild(top); wrap.appendChild(toolbar); wrap.appendChild(nav); wrap.appendChild(main);
+  app.appendChild(wrap);
+
+  /* ===== Barra de herramientas ===== */
+  function renderToolbar(){
+    toolbar.textContent = '';
+    var dirty = isDirty();
+    var st = el('div', 'status' + (dirty ? ' dirty' : ''));
+    st.appendChild(el('span', 'dot'));
+    var t;
+    if (readOnly) t = 'Solo lectura';
+    else if (dirty) t = 'Cambios sin guardar';
+    else if (state.actualizado) t = 'Última versión guardada el ' + fecha(state.actualizado);
+    else t = 'Sin cambios';
+    st.appendChild(el('span', null, t));
+    toolbar.appendChild(st);
+
+    if (!readOnly) {
+      var be = btn(edit ? 'Terminar edición' : 'Editar', edit ? 'on' : '', function(){ edit = !edit; sel = null; renderAll(); });
+      be.setAttribute('aria-pressed', edit ? 'true' : 'false');
+      toolbar.appendChild(be);
+      if (hist.length) toolbar.appendChild(btn('Deshacer', '', deshacer));
+      if (dirty) {
+        toolbar.appendChild(btn('Descartar', 'danger', descartar));
+        var g = btn(saving ? 'Guardando…' : 'Guardar', 'primary', guardar,
+          canSave ? '' : (runtime ? 'Esta vista no puede guardar cambios' : 'Para guardar, abrí la versión publicada del tablero'));
+        if (!canSave || saving) g.disabled = true;
+        toolbar.appendChild(g);
+      }
+    }
+    if (recover) {
+      var rc = el('div', 'recover');
+      rc.appendChild(el('span', null, 'Tenés cambios que no llegaron a guardarse porque otra persona guardó antes.'));
+      rc.appendChild(btn('Recuperarlos', 'sm', function(){ pushHist(); state = recover; recover = null; borrarBorrador(); edit = true; renderAll(); }));
+      rc.appendChild(btn('Descartarlos', 'sm', function(){ recover = null; borrarBorrador(); renderToolbar(); }));
+      toolbar.appendChild(rc);
+    }
+    if (dirty && !canSave && !readOnly && ready) {
+      toolbar.appendChild(el('p', 'msg', runtime ? 'Esta vista no puede guardar: los cambios quedan solo en esta pantalla.' : 'Vista previa: para guardar los cambios, abrí la versión publicada del tablero.'));
+    }
+    if (msg) toolbar.appendChild(el('p', 'msg' + (msgOk ? ' ok' : ''), msg));
+  }
+
+  /* ===== Pestañas ===== */
+  function renderNav(){
+    nav.textContent = '';
+    var cur = current();
+    var a0 = el('a'); a0.href = '#tablero'; a0.appendChild(el('b', null, '▦')); a0.appendChild(document.createTextNode('Tablero'));
+    if (cur === 'tablero' || !flujoActual()) a0.setAttribute('aria-current', 'page');
+    nav.appendChild(a0);
+    state.flujos.forEach(function(f, i){
+      var a = el('a'); a.href = '#' + f.slug;
+      a.appendChild(el('b', null, String(i + 1)));
+      a.appendChild(document.createTextNode(f.corto || f.nombre));
+      if (f.slug === cur) a.setAttribute('aria-current', 'page');
+      nav.appendChild(a);
+    });
+    if (edit) {
+      var nb = el('button', null, '+ Nuevo flujo'); nb.type = 'button';
+      nb.addEventListener('click', nuevoFlujo);
+      nav.appendChild(nb);
+    }
+  }
+
+  /* ===== Tablero ===== */
+  function renderBoard(){
+    var g = el('div', 'board');
+    state.flujos.forEach(function(f){
+      var c = el('a', 'card t-' + f.badge.tone); c.href = '#' + f.slug;
+      var b = el('span', 'badge ' + f.badge.tone, f.badge.text); b.style.alignSelf = 'flex-start';
+      c.appendChild(b);
+      c.appendChild(el('h3', null, f.nombre));
+      if (f.sub) c.appendChild(el('p', 'sub', f.sub));
+      var ini = f.nodos.filter(function(n){ return n.k === 'start'; })[0];
+      if (ini) c.appendChild(el('p', 'ask', ini.t));
+      var k = contar(f), s = el('div', 'stats');
+      [['ask', k.ask, 'pregunta', 'preguntas', '--k-ask', '--k-ask-bg'], ['file', k.file, 'archivo', 'archivos', '--k-file', '--k-file-bg'],
+       ['api', k.api, 'llamada a la API', 'llamadas a la API', '--k-api', '--k-api-bg'], ['dec', k.dec, 'decisión', 'decisiones', '--dec-ink', '--dec-bg']].forEach(function(x){
+        if (!x[1]) return;
+        var sp = el('span', null, x[1] + ' ' + (x[1] === 1 ? x[2] : x[3]));
+        sp.style.setProperty('--sc', 'var(' + x[4] + ')'); sp.style.setProperty('--sbg', 'var(' + x[5] + ')');
+        s.appendChild(sp);
+      });
+      c.appendChild(s);
+      g.appendChild(c);
+    });
+    return g;
+  }
+
+  /* ===== Flujo ===== */
+  function conector(flecha, corto){ return el('div', 'c' + (flecha ? ' arrow' : '') + (corto ? ' short' : '')); }
+  function decBg(){ return getComputedStyle(document.documentElement).getPropertyValue('--dec-bg').trim() || '#e0f3f5'; }
+
+  function nodoEl(n, f){
+    var d;
+    if (n.k === 'start' || n.k === 'end') {
+      d = el('div', 'pill ' + n.k, n.t);
+      if (n.n) d.appendChild(el('small', null, n.n));
+    } else if (n.k === 'dec') {
+      d = el('div', 'dec');
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('preserveAspectRatio', 'none'); svg.setAttribute('aria-hidden', 'true');
+      var pg = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      pg.setAttribute('points', '12,0 88,0 100,50 88,100 12,100 0,50'); pg.setAttribute('fill', decBg());
+      svg.appendChild(pg); d.appendChild(svg);
+      d.appendChild(el('span', null, n.t));
+    } else {
+      d = el('div', 'node k-' + n.k);
+      d.appendChild(el('span', 'tag', TAG[n.k] || ''));
+      d.appendChild(el('p', null, n.t));
+      if (n.n) d.appendChild(el('p', 'note' + (n.a ? ' alert' : ''), n.n));
+    }
+    d.setAttribute('data-id', n.id);
+    if (edit) {
+      d.tabIndex = 0; d.setAttribute('role', 'button');
+      d.setAttribute('aria-label', 'Editar: ' + n.t);
+      if (sel && sel.type === 'node' && sel.id === n.id) d.classList.add('sel');
+      var go = function(){ sel = {type:'node', id:n.id}; renderMain(); };
+      d.addEventListener('click', go);
+      d.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    }
+    return d;
+  }
+
+  function addBtn(txt, fn){ var b = el('button', 'add', txt); b.type = 'button'; b.addEventListener('click', fn); return b; }
+
+  function secuencia(list, cont, primero, f){
+    list.forEach(function(n, i){
+      if (!(primero && i === 0)) cont.appendChild(conector(true));
+      cont.appendChild(nodoEl(n, f));
+      if (n.k === 'dec') {
+        cont.appendChild(conector(false, true));
+        var br = el('div', 'branches');
+        (n.ramas || []).forEach(function(r){
+          var col = el('div', 'col' + (r.fin ? ' stop' : ''));
+          col.appendChild(conector(false, true));
+          col.appendChild(el('p', 'blabel', r.label || '—'));
+          if (r.nodos.length) secuencia(r.nodos, col, false, f);
+          if (edit) {
+            col.appendChild(conector(false, true));
+            col.appendChild(addBtn('+ Paso', function(){ pushHist(); var nn = {id:uid(), k:'ask', t:'Nuevo paso'}; r.nodos.push(nn); sel = {type:'node', id:nn.id}; cambio(true); }));
+          }
+          if (r.fin) { col.appendChild(conector(true)); col.appendChild(el('div', 'pill stop', 'Fin de la conversación')); }
+          else col.appendChild(el('div', 'grow'));
+          br.appendChild(col);
+        });
+        cont.appendChild(br);
+      }
+    });
+  }
+
+  function renderLamina(f){
+    var sec = el('section', 'lamina'); sec.id = 'lam';
+    var head = el('div', 'lam-head');
+    var tt = el('div');
+    tt.appendChild(el('h2', null, f.nombre));
+    if (f.sub) tt.appendChild(el('p', 'sub', f.sub));
+    head.appendChild(tt);
+    var right = el('div', 'lam-right');
+    right.appendChild(el('span', 'badge ' + f.badge.tone, f.badge.text));
+    var acts = el('div', 'lam-actions');
+    if (edit) acts.appendChild(btn('Editar datos del flujo', 'sm' + (sel && sel.type === 'meta' ? ' on' : ''), function(){ sel = {type:'meta'}; renderMain(); }));
+    else if (ns.downloads && window.html2canvas) acts.appendChild(btn('Descargar PNG', 'sm', function(){ descargarPNG(f); }));
+    if (acts.childNodes.length) right.appendChild(acts);
+    head.appendChild(right);
+    sec.appendChild(head);
+
+    var leg = el('div', 'legend');
+    LEYENDA.forEach(function(l){ var s = el('span'); var ic = el('i'); ic.style.background = 'var(' + l[1] + ')'; s.appendChild(ic); s.appendChild(document.createTextNode(l[0])); leg.appendChild(s); });
+    sec.appendChild(leg);
+    if (edit) sec.appendChild(el('p', 'hint', 'Tocá un paso o una decisión para editarlo. Con “+ Paso” agregás pasos dentro de una rama o al final del flujo.'));
+
+    var sc = el('div', 'scroll');
+    var flow = el('div', 'flow' + (edit ? ' editing' : ''));
+    secuencia(f.nodos, flow, true, f);
+    if (edit) {
+      if (f.nodos.length) flow.appendChild(conector(false, true));
+      flow.appendChild(addBtn('+ Paso al final', function(){ pushHist(); var nn = {id:uid(), k:'ask', t:'Nuevo paso'}; f.nodos.push(nn); sel = {type:'node', id:nn.id}; cambio(true); }));
+    }
+    sc.appendChild(flow);
+    sec.appendChild(sc);
+
+    if (f.pie && f.pie.length) {
+      var pie = el('div', 'foot');
+      f.pie.forEach(function(p){ if (p.t) pie.appendChild(el('p', p.a ? 'alert' : null, p.t)); });
+      sec.appendChild(pie);
+    }
+    return sec;
+  }
+
+  /* ===== Panel de edición ===== */
+  function campoTexto(lbl, val, multi, onIn){
+    var w = el('div', 'field'); var id = uid();
+    var l = el('label', null, lbl); l.htmlFor = id; w.appendChild(l);
+    var i = multi ? el('textarea') : el('input'); if (!multi) i.type = 'text';
+    i.id = id; i.value = val || '';
+    i.addEventListener('focus', function(){ pending = true; });
+    i.addEventListener('input', function(){ if (pending) { pushHist(); pending = false; } onIn(i.value); cambio(false); });
+    w.appendChild(i); return w;
+  }
+  function campoCheck(lbl, val, onCh){
+    var w = el('label', 'check'); var i = el('input'); i.type = 'checkbox'; i.checked = !!val;
+    i.addEventListener('change', function(){ pushHist(); onCh(i.checked); cambio(false); });
+    w.appendChild(i); w.appendChild(document.createTextNode(lbl)); return w;
+  }
+  function campoSelect(lbl, opts, val, onCh){
+    var w = el('div', 'field'); var id = uid();
+    var l = el('label', null, lbl); l.htmlFor = id; w.appendChild(l);
+    var s = el('select'); s.id = id;
+    opts.forEach(function(o){ var op = el('option', null, o[1]); op.value = o[0]; if (o[0] === val) op.selected = true; s.appendChild(op); });
+    s.addEventListener('change', function(){ onCh(s.value, s); });
+    w.appendChild(s); return w;
+  }
+
+  function panelNodo(f, hit){
+    var n = hit.node, p = el('aside', 'panel'); p.setAttribute('aria-label', 'Editar paso');
+    p.appendChild(el('h3', null, n.k === 'dec' ? 'Editar decisión' : 'Editar paso'));
+    p.appendChild(el('p', 'phint', 'Los cambios se ven al instante en el flujo.'));
+    p.appendChild(campoSelect('Tipo', KINDS, n.k, function(v, s){
+      if (n.k === 'dec' && v !== 'dec' && n.ramas && n.ramas.some(function(r){ return r.nodos.length; })) {
+        if (!confirm('Se van a borrar los pasos que hay dentro de las ramas. ¿Seguir?')) { s.value = 'dec'; return; }
+      }
+      pushHist();
+      n.k = v;
+      if (v === 'dec' && !n.ramas) n.ramas = [{id:uid(), label:'Sí', fin:false, nodos:[]}, {id:uid(), label:'No', fin:false, nodos:[]}];
+      if (v !== 'dec') delete n.ramas;
+      cambio(true);
+    }));
+    p.appendChild(campoTexto(n.k === 'dec' ? 'Pregunta' : 'Texto', n.t, true, function(v){ n.t = v; }));
+    if (n.k !== 'dec') {
+      var pillish = n.k === 'start' || n.k === 'end';
+      p.appendChild(campoTexto(pillish ? 'Subtítulo' : 'Nota', n.n, true, function(v){ if (v) n.n = v; else delete n.n; }));
+      if (!pillish) p.appendChild(campoCheck('Mostrar la nota como alerta (en rojo)', n.a, function(v){ if (v) n.a = true; else delete n.a; }));
+    } else {
+      var rw = el('div', 'field'); rw.appendChild(el('span', 'lbl', 'Ramas'));
+      n.ramas.forEach(function(r, i){
+        var box = el('div', 'rama');
+        var row = el('div', 'row');
+        var inp = el('input'); inp.type = 'text'; inp.value = r.label; inp.setAttribute('aria-label', 'Nombre de la rama ' + (i + 1));
+        inp.addEventListener('focus', function(){ pending = true; });
+        inp.addEventListener('input', function(){ if (pending) { pushHist(); pending = false; } r.label = inp.value; cambio(false); });
+        row.appendChild(inp);
+        var q = btn('Quitar', 'sm danger', function(){
+          if (n.ramas.length <= 2) { alert('Una decisión necesita al menos dos ramas.'); return; }
+          if (r.nodos.length && !confirm('Esta rama tiene pasos. ¿Quitarla igual?')) return;
+          pushHist(); n.ramas.splice(i, 1); cambio(true);
+        });
+        row.appendChild(q);
+        box.appendChild(row);
+        box.appendChild(campoCheck('Termina la conversación', r.fin, function(v){ r.fin = v; }));
+        box.lastChild.style.margin = '0';
+        box.appendChild(el('small', null, r.nodos.length ? r.nodos.length + (r.nodos.length === 1 ? ' paso dentro' : ' pasos dentro') : 'Sin pasos: usá “+ Paso” en el flujo'));
+        rw.appendChild(box);
+      });
+      rw.appendChild(btn('+ Agregar rama', 'sm', function(){ pushHist(); n.ramas.push({id:uid(), label:'Otra opción', fin:false, nodos:[]}); cambio(true); }));
+      p.appendChild(rw);
+    }
+    var a = el('div', 'actions');
+    a.appendChild(btn('↑ Subir', 'sm', function(){ if (hit.idx > 0) { pushHist(); var t = hit.list[hit.idx - 1]; hit.list[hit.idx - 1] = n; hit.list[hit.idx] = t; cambio(true); } }, 'Mover arriba'));
+    a.appendChild(btn('↓ Bajar', 'sm', function(){ if (hit.idx < hit.list.length - 1) { pushHist(); var t = hit.list[hit.idx + 1]; hit.list[hit.idx + 1] = n; hit.list[hit.idx] = t; cambio(true); } }, 'Mover abajo'));
+    a.appendChild(btn('+ Paso debajo', 'sm', function(){ pushHist(); var nn = {id:uid(), k:'ask', t:'Nuevo paso'}; hit.list.splice(hit.idx + 1, 0, nn); sel = {type:'node', id:nn.id}; cambio(true); }));
+    a.appendChild(btn('+ Decisión debajo', 'sm', function(){ pushHist(); var nn = {id:uid(), k:'dec', t:'¿Nueva pregunta?', ramas:[{id:uid(), label:'Sí', fin:false, nodos:[]}, {id:uid(), label:'No', fin:false, nodos:[]}]}; hit.list.splice(hit.idx + 1, 0, nn); sel = {type:'node', id:nn.id}; cambio(true); }));
+    a.appendChild(btn('Duplicar', 'sm', function(){ pushHist(); var c = reid(clone(n)); hit.list.splice(hit.idx + 1, 0, c); sel = {type:'node', id:c.id}; cambio(true); }));
+    a.appendChild(btn('Eliminar', 'sm danger', function(){
+      if (n.ramas && n.ramas.some(function(r){ return r.nodos.length; }) && !confirm('La decisión tiene pasos dentro de sus ramas. ¿Eliminar todo?')) return;
+      pushHist(); hit.list.splice(hit.idx, 1); sel = null; cambio(true);
+    }));
+    a.appendChild(btn('Cerrar', 'sm', function(){ sel = null; renderMain(); }));
+    p.appendChild(a);
+    return p;
+  }
+
+  function panelMeta(f){
+    var p = el('aside', 'panel'); p.setAttribute('aria-label', 'Datos del flujo');
+    p.appendChild(el('h3', null, 'Datos del flujo'));
+    p.appendChild(el('p', 'phint', 'Título, estado y notas al pie.'));
+    p.appendChild(campoTexto('Nombre del trámite', f.nombre, false, function(v){ f.nombre = v; }));
+    p.appendChild(campoTexto('Nombre corto (pestaña)', f.corto, false, function(v){ f.corto = v; }));
+    p.appendChild(campoTexto('Subtítulo', f.sub, false, function(v){ f.sub = v; }));
+    p.appendChild(campoTexto('Estado', f.badge.text, false, function(v){ f.badge.text = v; }));
+    p.appendChild(campoSelect('Color del estado', TONES, f.badge.tone, function(v){ pushHist(); f.badge.tone = v; cambio(false); }));
+    var nw = el('div', 'field'); nw.appendChild(el('span', 'lbl', 'Notas al pie'));
+    (f.pie || []).forEach(function(nota, i){
+      var box = el('div', 'pnote');
+      var ta = el('textarea'); ta.value = nota.t; ta.setAttribute('aria-label', 'Nota ' + (i + 1));
+      ta.addEventListener('focus', function(){ pending = true; });
+      ta.addEventListener('input', function(){ if (pending) { pushHist(); pending = false; } nota.t = ta.value; cambio(false); });
+      box.appendChild(ta);
+      var row = el('div', 'row'); row.style.display = 'flex'; row.style.gap = '8px'; row.style.alignItems = 'center'; row.style.justifyContent = 'space-between';
+      var ck = campoCheck('Alerta (en rojo)', nota.a, function(v){ nota.a = v; }); ck.style.margin = '0';
+      row.appendChild(ck);
+      row.appendChild(btn('Quitar', 'sm danger', function(){ pushHist(); f.pie.splice(i, 1); cambio(true); }));
+      box.appendChild(row);
+      nw.appendChild(box);
+    });
+    nw.appendChild(btn('+ Agregar nota', 'sm', function(){ pushHist(); f.pie = f.pie || []; f.pie.push({t:'Nueva nota', a:false}); cambio(true); }));
+    p.appendChild(nw);
+    var a = el('div', 'actions');
+    a.appendChild(btn('Duplicar flujo', 'sm', function(){
+      pushHist(); var c = clone(f); c.id = uid(); c.nombre = f.nombre + ' (copia)'; c.corto = (f.corto || f.nombre) + ' (copia)'; c.slug = slugify(c.nombre); c.nodos.forEach(reid);
+      state.flujos.splice(state.flujos.indexOf(f) + 1, 0, c); sel = {type:'meta'}; location.hash = c.slug; cambio(true);
+    }));
+    a.appendChild(btn('Eliminar flujo', 'sm danger', function(){
+      if (!confirm('¿Eliminar el flujo “' + f.nombre + '”? Podés deshacerlo antes de guardar.')) return;
+      pushHist(); state.flujos.splice(state.flujos.indexOf(f), 1); sel = null; location.hash = 'tablero'; cambio(true);
+    }));
+    a.appendChild(btn('Cerrar', 'sm', function(){ sel = null; renderMain(); }));
+    p.appendChild(a);
+    return p;
+  }
+
+  /* ===== Render ===== */
+  function renderMain(){
+    main.textContent = '';
+    var f = flujoActual();
+    if (!f) { main.appendChild(renderBoard()); return; }
+    var hit = sel && sel.type === 'node' ? find(f, sel.id) : null;
+    if (sel && sel.type === 'node' && !hit) sel = null;
+    var withPanel = edit && sel;
+    var lay = el('div', 'layout' + (withPanel ? ' with-panel' : ''));
+    lay.appendChild(renderLamina(f));
+    if (withPanel) lay.appendChild(sel.type === 'meta' ? panelMeta(f) : panelNodo(f, hit));
+    main.appendChild(lay);
+  }
+  function renderLaminaOnly(){
+    var f = flujoActual(); var old = document.getElementById('lam');
+    if (f && old) old.replaceWith(renderLamina(f)); else renderMain();
+  }
+  function renderAll(){ renderToolbar(); renderNav(); renderMain(); }
+
+  /* estructural = cambian elementos del panel también */
+  function cambio(estructural){
+    msg = '';
+    renderToolbar(); renderNav();
+    if (estructural) renderMain(); else renderLaminaOnly();
+  }
+
+  function deshacer(){ if (!hist.length) return; state = JSON.parse(hist.pop()); if (!flujoActual() && current() !== 'tablero') location.hash = 'tablero'; renderAll(); }
+  function descartar(){
+    if (!confirm('¿Descartar todos los cambios sin guardar?')) return;
+    state = clone(EMBED); hist = []; sel = null; msg = '';
+    if (!flujoActual() && current() !== 'tablero') location.hash = 'tablero';
+    renderAll();
+  }
+  function nuevoFlujo(){
+    pushHist();
+    var f = {id:uid(), slug:slugify('nuevo flujo'), nombre:'Nuevo flujo', corto:'Nuevo flujo', sub:'', badge:{tone:'pend', text:'Sin definir'},
+      nodos:[{id:uid(), k:'start', t:'“Pedido del ciudadano”', n:'Ciudadano ya validado con USI'}, {id:uid(), k:'end', t:'Cierre', n:'N.º de trámite y encuesta.'}], pie:[]};
+    state.flujos.push(f); sel = {type:'meta'}; location.hash = f.slug; cambio(true);
+  }
+
+  /* ===== Guardar ===== */
+  function guardarBorrador(st){ try { sessionStorage.setItem(KEY_DRAFT, JSON.stringify(st)); sessionStorage.setItem(KEY_VIEW, current()); } catch(e) {} }
+  function borrarBorrador(){ try { sessionStorage.removeItem(KEY_DRAFT); } catch(e) {} }
+
+  function guardar(){
+    if (!canSave || saving || !ns.artifact) return;
+    saving = true; msg = ''; renderToolbar();
+    var st = clone(state); st.actualizado = new Date().toISOString();
+    guardarBorrador(st);
+    var html = buildHTML(st);
+    var intento = function(reintento){
+      ns.artifact.publish(html).then(function(){
+        saving = false; setMsg('Guardado. Actualizando el tablero…', true);
+      }, function(err){
+        var code = err && err.code;
+        if (code === 'conflict') { saving = false; setMsg('Otra persona guardó una versión antes. El tablero se actualiza y vas a poder recuperar tus cambios.'); return; }
+        if (code === 'upstream_error' && !reintento) { setTimeout(function(){ intento(true); }, 800 + Math.random() * 800); return; }
+        saving = false;
+        if (['not_writer','not_granted','consent_required','capability_disabled','capability_removed','not_declared'].indexOf(code) >= 0) {
+          canSave = false; borrarBorrador(); setMsg('Esta vista es de solo lectura: no se pueden guardar cambios.'); return;
+        }
+        borrarBorrador();
+        if (code === 'rate_limited') setMsg('Se guardó hace muy poco. Esperá unos segundos y probá de nuevo.');
+        else if (code === 'too_large') setMsg('El tablero quedó demasiado grande para guardarse.');
+        else setMsg('No se pudo guardar. Probá de nuevo en un momento.');
+      });
+    };
+    intento(false);
+  }
+
+  /* ===== PNG ===== */
+  function descargarPNG(f){
+    var lam = document.getElementById('lam');
+    if (!lam || !window.html2canvas || !ns.downloads) return;
+    lam.classList.add('exporting');
+    var bg = getComputedStyle(lam).backgroundColor;
+    window.html2canvas(lam, {scale:2, backgroundColor:bg, logging:false}).then(function(canvas){
+      lam.classList.remove('exporting');
+      return new Promise(function(res){ canvas.toBlob(res, 'image/png'); });
+    }).then(function(blob){
+      if (!blob) throw new Error('blob');
+      return ns.downloads.save({filename:'flujo-' + f.slug + '.png', data:blob});
+    }).catch(function(err){
+      lam.classList.remove('exporting');
+      var code = err && err.code;
+      if (code === 'declined') return;
+      if (code === 'unavailable' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') { ns.downloads = null; renderLaminaOnly(); return; }
+      setMsg('No se pudo generar la imagen del flujo.');
+    });
+  }
+
+  /* ===== Inicio ===== */
+  try {
+    var d = sessionStorage.getItem(KEY_DRAFT);
+    if (d) {
+      if (d === EMBED_TXT || d === JSON.stringify(EMBED)) borrarBorrador();
+      else { recover = JSON.parse(d); }
+    }
+    var v = sessionStorage.getItem(KEY_VIEW);
+    if (v && !location.hash) { location.hash = v; }
+    sessionStorage.removeItem(KEY_VIEW);
+  } catch(e) {}
+
+  window.addEventListener('hashchange', function(){ sel = null; renderNav(); renderMain(); window.scrollTo(0, 0); });
+  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); var rr = function(){ renderMain(); }; if (mq.addEventListener) mq.addEventListener('change', rr); }
+  window.addEventListener('beforeunload', function(e){ if (isDirty() && !saving) { e.preventDefault(); e.returnValue = ''; } });
+
+  renderAll();
+
+  if (runtime) {
+    Promise.all([window.claude.use('artifact'), window.claude.use('downloads'), window.claude.use('user')]).then(function(r){
+      ns.artifact = r[0]; ns.downloads = r[1]; ns.user = r[2];
+      var fin = function(){ ready = true; renderAll(); };
+      if (ns.user && ns.user.canEdit) {
+        ns.user.canEdit().then(function(ce){
+          if (!ce) { readOnly = true; edit = false; canSave = false; }
+          else canSave = !!ns.artifact;
+          fin();
+        });
+      } else { canSave = !!ns.artifact; fin(); }
+    }, function(){ ready = true; renderAll(); });
+  } else { ready = true; renderToolbar(); }
+})();
+</script>
+</body>
+</html>
